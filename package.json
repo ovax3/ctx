@@ -1,0 +1,16 @@
+{
+  "name": "ctx",
+  "version": "0.1.0",
+  "description": "A minimalist context resolver.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test"
+  },
+  "repository": "git://git@github.com:ovax3/node-ctx.git",
+  "keywords": [
+    "dependency",
+    "injection",
+    "container"
+  ],
+  "author": "Ov <ov@annexe3.com>"
+}
