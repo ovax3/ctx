@@ -1,20 +1,20 @@
 var ctx = require('./index');
 
-var app = ctx();
+var $ = ctx();
 
-app.on('$value', function(name, value) {
+$.on('$binding', function(name, value) {
   console.log(name, value);
 });
 
-app
+$
   .define('a', [], function() { return 7; })
   .define('b', [], function() { return 3; })
-  .define('c', [ 'a', 'b' ], function() { return this.a * this.b; })
+  .define('c', [ 'a', 'b' ], function() { return $.a * $.b; })
   .define('d', [], function() { return 2; })
-  .define('e', [ 'c', 'd' ], function() { return this.c * this.d; })
+  .define('e', [ 'c', 'd' ], function() { return $.c * $.d; })
 ;
 
-app.resolve(function(values) {
-  console.log(values);
+$.resolve(function() {
+  console.log($.a, $.b, $.c, $.d, $.e);
 });
 

@@ -10,17 +10,19 @@
 
     var ctx = require('ctx');
 
-    ctx()
+    var $ = ctx();
+
+    $
       .define('a', [], function() { return 7; })
       .define('b', [], function() { return 3; })
-      .define('c', [ 'a', 'b' ], function() { return this.a * this.b; })
+      .define('c', [ 'a', 'b' ], function() { return $.a * $.b; })
       .define('d', [], function() { return 2; })
-      .define('e', [ 'c', 'd' ], function() { return this.c * this.d; })
-    .resolve(function(values) {
-      console.log(values);
+      .define('e', [ 'c', 'd' ], function() { return $.c * $.d; })
+    .resolve(function() {
+      console.log($.a, $.b, $.c, $.d, $.e);
     });
 
 results in
 
-    { a: 7, b: 3, c: 21, d: 2, e: 42 }
+    7, 3, 21, 2, 42
 

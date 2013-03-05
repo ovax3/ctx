@@ -5,7 +5,6 @@ function Ctx() {
   EventEmitter.call(this);
 
   this.pendings = 0;
-  this.values = {};
 
   this.setMaxListeners(0);
 }
@@ -25,9 +24,9 @@ Ctx.prototype.define = function(name, dependencies, factory) {
   var solve = function() {
     if (--pendings == 0) {
       if (factory.length == 0) {
-        done(factory.call(self.values));
+        done(factory.call(self));
       } else {
-        factory.call(self.values, done);
+        factory.call(self, done);
       }
     }
   };
@@ -43,12 +42,12 @@ Ctx.prototype.define = function(name, dependencies, factory) {
 };
 
 Ctx.prototype.provide = function(name, value) {
-  this.values[name] = value;
-  this.emit('$value', name, value);
+  this[name] = value;
+  this.emit('$binding', name, value);
   this.emit(name);
   if (--(this.pendings) == 0) {
     if (this.done) {
-      this.done(this.values);
+      this.done(this);
     }
   }
 };
