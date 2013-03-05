@@ -5,6 +5,7 @@ function Ctx() {
   EventEmitter.call(this);
 
   this.pendings = 0;
+  this.errors = {};
 
   this.setMaxListeners(0);
 }
@@ -17,16 +18,24 @@ Ctx.prototype.define = function(name, dependencies, factory) {
 
   var pendings = dependencies.length + 1;
 
-  var done = function(product) {
-    self.provide(name, product);
+  var done = function(err, product) {
+    self.provide(name, err, product);
   };
 
-  var solve = function() {
+  var ecount = 0;
+
+  var solve = function(_, err, _) {
+    if (err) ecount++;
+
     if (--pendings == 0) {
+      if (ecount !== 0) {
+        return done(new Error(ecount + " dependencies in error"));
+      }
+
       if (factory.length == 0) {
-        done(factory.call(self));
+        return done(null, factory.call(self));
       } else {
-        factory.call(self, done);
+        return factory.call(self, done);
       }
     }
   };
@@ -41,13 +50,15 @@ Ctx.prototype.define = function(name, dependencies, factory) {
   return self;
 };
 
-Ctx.prototype.provide = function(name, value) {
+Ctx.prototype.provide = function(name, err, value) {
+  if (err) this.errors[name] = err;
   this[name] = value;
-  this.emit('$binding', name, value);
-  this.emit(name);
+  this.emit('$binding', name, err, value);
+  this.emit(name, name, err, value);
   if (--(this.pendings) == 0) {
     if (this.done) {
-      this.done(this);
+      var ecount = Object.getOwnPropertyNames(this.errors).length;
+      this.done(ecount === 0 ? null : this.errors, this);
     }
   }
 };
