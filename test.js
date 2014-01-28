@@ -13,14 +13,15 @@ $.define('b', [], function () { return 3; });
 $.define('c', [ 'a', 'b' ], function () { return $.a * $.b; });
 $.define('d', [], function () { return 2; });
 $.define('e', [ 'c', 'd' ], function (done) { return done(null, $.c * $.d); });
-
-$.resolve(function (err) {
-  console.log('errors', err);
-
+$.define('test', [ 'a', 'b', 'c', 'd', 'e' ], function () {
   assert.equal($.a, 7);
   assert.equal($.b, 3);
   assert.equal($.c, 21);
   assert.equal($.d, 2);
   assert.equal($.e, 42);
+});
+
+$.resolve(function (err) {
+  console.log('errors', err);
 });
 
