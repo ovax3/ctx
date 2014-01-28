@@ -1,6 +1,15 @@
 var util = require('util'),
     EventEmitter = require('events').EventEmitter;
 
+function params(f) {
+  var decl = f.toString();
+  return decl.slice(decl.indexOf('(') + 1, decl.indexOf(')')).match(/([^\s,]+)/g) || [];
+}
+
+function proj(x) {
+  return this[x];
+}
+
 function Ctx() {
   EventEmitter.call(this);
 
@@ -11,8 +20,13 @@ function Ctx() {
 }
 util.inherits(Ctx, EventEmitter);
 
-Ctx.prototype.define = function (name, dependencies, factory) {
+Ctx.prototype.define = function (name, factory) {
   var self = this;
+
+  var dependencies = params(factory);
+
+  var async = dependencies[dependencies.length - 1] == 'done';
+  if (async) dependencies.pop();
 
   self.pendings++;
 
@@ -32,10 +46,13 @@ Ctx.prototype.define = function (name, dependencies, factory) {
         return done(new Error(ecount + " dependencies in error"));
       }
 
-      if (factory.length == 0) {
-        return done(null, factory.call(self));
+      var args = dependencies.map(proj, self);
+
+      if (async) {
+        args.push(done);
+        return factory.apply(self, args);
       } else {
-        return factory.call(self, done);
+        return done(null, factory.apply(self, args));
       }
     }
   };
