@@ -11,20 +11,20 @@ function Ctx() {
 }
 util.inherits(Ctx, EventEmitter);
 
-Ctx.prototype.define = function(name, dependencies, factory) { 
+Ctx.prototype.define = function (name, dependencies, factory) { 
   var self = this;
 
   self.pendings++;
 
   var pendings = dependencies.length + 1;
 
-  var done = function(err, product) {
+  var done = function (err, product) {
     self.provide(name, err, product);
   };
 
   var ecount = 0;
 
-  var solve = function(_, err, _) {
+  var solve = function (_, err, _) {
     if (err) ecount++;
 
     if (--pendings == 0) {
@@ -40,7 +40,7 @@ Ctx.prototype.define = function(name, dependencies, factory) {
     }
   };
 
-  var listen = function(dependency) {
+  var listen = function (dependency) {
     self.once(dependency, solve);
   };
 
@@ -50,7 +50,7 @@ Ctx.prototype.define = function(name, dependencies, factory) {
   return self;
 };
 
-Ctx.prototype.provide = function(name, err, value) {
+Ctx.prototype.provide = function (name, err, value) {
   if (err) this.errors[name] = err;
   this[name] = value;
   this.emit('$binding', name, err, value);
@@ -63,12 +63,12 @@ Ctx.prototype.provide = function(name, err, value) {
   }
 };
 
-Ctx.prototype.resolve = function(done) {
+Ctx.prototype.resolve = function (done) {
   this.done = done;
   this.emit('@');
 };
 
-module.exports = function() {
+module.exports = function () {
   return new Ctx();
 };
 
