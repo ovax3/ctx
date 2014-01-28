@@ -11,7 +11,7 @@ function Ctx() {
 }
 util.inherits(Ctx, EventEmitter);
 
-Ctx.prototype.define = function (name, dependencies, factory) { 
+Ctx.prototype.define = function (name, dependencies, factory) {
   var self = this;
 
   self.pendings++;
