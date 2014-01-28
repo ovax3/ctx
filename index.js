@@ -46,8 +46,6 @@ Ctx.prototype.define = function (name, dependencies, factory) {
 
   listen('@');
   dependencies.forEach(listen);
-
-  return self;
 };
 
 Ctx.prototype.provide = function (name, err, value) {
