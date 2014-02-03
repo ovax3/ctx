@@ -1,5 +1,3 @@
-var EventEmitter = require('events').EventEmitter;
-
 function params(f) {
   var decl = f.toString();
   return decl.slice(decl.indexOf('(') + 1, decl.indexOf(')')).match(/([^\s,]+)/g) || [];
@@ -9,25 +7,11 @@ function proj(x) {
   return this[x];
 }
 
-var emitter = new EventEmitter();
-emitter.setMaxListeners(0);
-
-var pendings = 0;
-var errors = {};
+var defs = {};
 var values = {};
-
-var provide = function (name, err, value) {
-  if (err) errors[name] = err;
-  values[name] = value;
-  emitter.emit('$binding', name, err, value);
-  emitter.emit(name, name, err, value);
-  if (--pendings == 0) {
-    if (values.done) {
-      var ecount = Object.getOwnPropertyNames(errors).length;
-      values.done(ecount === 0 ? null : errors, values);
-    }
-  }
-};
+var errors = {};
+var pending = 0;
+var cb = null;
 
 var define = function (name, factory) {
   var dependencies = params(factory);
@@ -35,45 +19,63 @@ var define = function (name, factory) {
   var async = dependencies[dependencies.length - 1] == 'done';
   if (async) dependencies.pop();
 
-  pendings++;
+  defs[name] = {
+    name: name,
+    factory: factory,
+    waiting: [],
+    dependencies: dependencies,
+    pending: dependencies.length,
+    async: async
+  }
 
-  var _pendings = dependencies.length + 1;
+  pending++;
+};
 
-  var done = function (err, product) {
-    provide(name, err, product);
+var end = function (err) {
+  var _cb = cb;
+  cb = defs = values = null;
+  _cb();
+};
+
+var eval = function (def) {
+  var done = function (err, value) {
+    if (err) return end(err);
+    if (--pending == 0) return end(null);
+
+    values[def.name] = value;
+
+    def.waiting.forEach(function (name) {
+      var waiting = defs[name];
+      if (--waiting.pending == 0) eval(waiting);
+    });
   };
 
-  var ecount = 0;
+  var args = def.dependencies.map(proj, values);
 
-  var solve = function (_, err, _) {
-    if (err) ecount++;
-
-    if (--_pendings == 0) {
-      if (ecount !== 0) {
-        return done(new Error(ecount + " dependencies in error"));
-      }
-
-      var args = dependencies.map(proj, values);
-
-      if (async) {
-        args.push(done);
-        return factory.apply(values, args);
-      } else {
-        return done(null, factory.apply(values, args));
-      }
-    }
-  };
-
-  var listen = function (dependency) {
-    emitter.once(dependency, solve);
-  };
-
-  listen('@');
-  dependencies.forEach(listen);
+  if (def.async) {
+    args.push(done);
+    def.factory.apply(null, args);
+  } else {
+    done(null, def.factory.apply(null, args));
+  }
 };
 
 var resolve = function (done) {
-  emitter.emit('@');
+  cb = done;
+
+  for (var name in defs) {
+    var def = defs[name];
+    def.dependencies.forEach(function (dep) {
+      defs[dep].waiting.push(name);
+    });
+  };
+
+  var todo = [];
+  for (var name in defs) {
+    var def = defs[name];
+    if (def.pending == 0) todo.push(def);
+  };
+  todo.forEach(eval);
 };
 
 module.exports = {
