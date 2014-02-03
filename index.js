@@ -9,7 +9,6 @@ function proj(x) {
 
 var defs = {};
 var values = {};
-var errors = {};
 var pending = 0;
 var cb = null;
 
