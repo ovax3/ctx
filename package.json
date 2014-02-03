@@ -1,6 +1,6 @@
 {
   "name": "ctx",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "A minimalist context resolver.",
   "main": "index.js",
   "scripts": {
