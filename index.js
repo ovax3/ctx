@@ -65,7 +65,12 @@ var resolve = function (done) {
   for (var name in defs) {
     var def = defs[name];
     def.dependencies.forEach(function (dep) {
-      defs[dep].waiting.push(name);
+      var d = defs[dep];
+      if (d) {
+        d.waiting.push(name);
+      } else {
+        throw new Error(name + ' depends on ' + dep + ' which does not exist');
+      }
     });
   };
 
